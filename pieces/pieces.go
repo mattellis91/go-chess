@@ -12,6 +12,11 @@ type Square struct {
 	Y int
 }
 
+type DragPosition struct {
+	X int
+	Y int
+}
+
 type GamePiece interface {
 	Draw(screen *ebiten.Image, square Square)
 	GetLegalMoves(position BoardPosition, square Square) []int
@@ -35,4 +40,6 @@ const (
 	BLACK_KNIGHT
 	BLACK_PAWN
 )
+
+const DRAG_START_LOCATION = -10
 
