@@ -8,10 +8,12 @@ import (
 // 4 pixel border
 // 16x16 pixel squares
 
+//TODO: Convert structs to generic piece structs instead of white and black
+
 type WhitePawn struct {
-	Id PieceId
+	Id         PieceId
 	PieceImage *ebiten.Image
-	DrawOps *ebiten.DrawImageOptions
+	DrawOps    *ebiten.DrawImageOptions
 }
 
 func NewWhitePawn(piecesSource *ebiten.Image) *WhitePawn {
@@ -29,16 +31,35 @@ func (p *WhitePawn) GetLegalMoves(position BoardPosition, square Square) []int {
 
 func (p *WhitePawn) Draw(screen *ebiten.Image, square Square) {
 	p.DrawOps = &ebiten.DrawImageOptions{}
-	borderOffset := 0
-	if square.X == 0 {
-		borderOffset = 4
-	} 
-	p.DrawOps.GeoM.Translate(float64(((square.X * 16) + borderOffset)), float64((square.Y * 16) - 2))
+	xOffset := 0
+	switch square.X {
+	case 0:
+		xOffset = 3
+	case 1, 2:
+		xOffset = 2
+	case 3:
+		xOffset = 1
+	case 5:
+		xOffset = -1
+	case 6:
+		xOffset = -2
+	case 7:
+		xOffset = -3
+	}
+	yOffset := 0 
+	switch square.Y {
+		case 1:
+			yOffset = 3
+		case 6:
+			yOffset = - 2
+	}
+
+	p.DrawOps.GeoM.Translate(float64((square.X*16 + xOffset)), float64((square.Y * 16 + yOffset)))
 	screen.DrawImage(p.PieceImage, p.DrawOps)
 }
 
 type WhiteBishop struct {
-	Id PieceId
+	Id         PieceId
 	PieceImage *ebiten.Image
 }
 
@@ -53,7 +74,21 @@ func NewWhiteBishop(piecesSource *ebiten.Image) *WhiteBishop {
 
 func (p *WhiteBishop) Draw(screen *ebiten.Image, square Square) {
 	drawOps := &ebiten.DrawImageOptions{}
-	drawOps.GeoM.Translate(float64((square.X * 16) + 4), float64(square.Y * 16) - 2)
+	xOffset := 0
+	switch square.X {
+	case 2:
+		xOffset = 4
+	case 5:
+		xOffset = 1
+	}
+	yOffset := 0
+	switch square.Y {
+		case 0:
+			yOffset = 5
+		case 7:
+			yOffset = -2
+	}
+	drawOps.GeoM.Translate(float64((square.X*16 + xOffset)), float64(square.Y*16 + yOffset))
 	screen.DrawImage(p.PieceImage, drawOps)
 }
 
@@ -62,7 +97,7 @@ func (p *WhiteBishop) GetLegalMoves(position BoardPosition, square Square) []int
 }
 
 type WhiteKnight struct {
-	Id PieceId
+	Id         PieceId
 	PieceImage *ebiten.Image
 }
 
@@ -81,12 +116,26 @@ func (p *WhiteKnight) GetLegalMoves(position BoardPosition, square Square) []int
 
 func (p *WhiteKnight) Draw(screen *ebiten.Image, square Square) {
 	drawOps := &ebiten.DrawImageOptions{}
-	drawOps.GeoM.Translate(float64((square.X * 16) + 2), float64(square.Y * 16) - 2)
+	xOffset := 0
+	switch square.X {
+	case 1:
+		xOffset = 4
+	case 6:
+		xOffset = -1
+	}
+	yOffset := 0
+	switch square.Y {
+		case 0:
+			yOffset = 5
+		case 7:
+			yOffset = -2
+	}
+	drawOps.GeoM.Translate(float64((square.X*16 + xOffset)), float64(square.Y*16 + yOffset))
 	screen.DrawImage(p.PieceImage, drawOps)
 }
 
 type WhiteRook struct {
-	Id PieceId
+	Id         PieceId
 	PieceImage *ebiten.Image
 }
 
@@ -105,16 +154,26 @@ func (p *WhiteRook) GetLegalMoves(position BoardPosition, square Square) []int {
 
 func (p *WhiteRook) Draw(screen *ebiten.Image, square Square) {
 	drawOps := &ebiten.DrawImageOptions{}
-	borderOffset := 0
-	if square.X == 0 {
-		borderOffset = 4
+	xOffset := 0
+	switch square.X {
+	case 0:
+		xOffset = 3
+	case 7:
+		xOffset = -3
 	}
-	drawOps.GeoM.Translate(float64((square.X * 16) + borderOffset), float64(square.Y * 16) - 2)
+	yOffset := 0
+	switch square.Y {
+	case 0:
+		yOffset = 5
+	case 7:
+		yOffset = -2
+	}
+	drawOps.GeoM.Translate(float64((square.X*16 + xOffset)), float64(square.Y*16 + yOffset))
 	screen.DrawImage(p.PieceImage, drawOps)
 }
 
 type WhiteQueen struct {
-	Id PieceId
+	Id         PieceId
 	PieceImage *ebiten.Image
 }
 
@@ -129,7 +188,14 @@ func NewWhiteQueen(piecesSource *ebiten.Image) *WhiteQueen {
 
 func (p *WhiteQueen) Draw(screen *ebiten.Image, square Square) {
 	drawOps := &ebiten.DrawImageOptions{}
-	drawOps.GeoM.Translate(float64(square.X * 16), float64(square.Y * 16) - 2)
+	yOffset := 0
+	switch square.Y {
+		case 0:
+			yOffset = 5
+		case 7:
+			yOffset = -2
+	}
+	drawOps.GeoM.Translate(float64(square.X*16), float64(square.Y*16 + yOffset))
 	screen.DrawImage(p.PieceImage, drawOps)
 }
 
@@ -138,7 +204,7 @@ func (p *WhiteQueen) GetLegalMoves(position BoardPosition, square Square) []int 
 }
 
 type WhiteKing struct {
-	Id PieceId
+	Id         PieceId
 	PieceImage *ebiten.Image
 }
 
@@ -157,6 +223,18 @@ func (p *WhiteKing) GetLegalMoves(position BoardPosition, square Square) []int {
 
 func (p *WhiteKing) Draw(screen *ebiten.Image, square Square) {
 	drawOps := &ebiten.DrawImageOptions{}
-	drawOps.GeoM.Translate(float64(square.X * 16), float64(square.Y * 16) - 2)
+	xOffset := 0
+	switch square.X {
+	case 4:
+		xOffset = 2
+	}
+	yOffset := 0
+	switch square.Y {
+		case 0:
+			yOffset = 5
+		case 7:
+			yOffset = -2
+	}
+	drawOps.GeoM.Translate(float64(square.X*16 + xOffset), float64(square.Y*16 + yOffset))
 	screen.DrawImage(p.PieceImage, drawOps)
 }

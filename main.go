@@ -30,6 +30,13 @@ var whiteRook *pieces.WhiteRook
 var whiteQueen *pieces.WhiteQueen
 var whiteKing *pieces.WhiteKing
 
+var blackPawn *pieces.WhitePawn
+var blackBishop *pieces.WhiteBishop
+var blackKnight *pieces.WhiteKnight
+var blackRook *pieces.WhiteRook
+var blackQueen *pieces.WhiteQueen
+var blackKing *pieces.WhiteKing
+
 var startBoard = pieces.BoardPosition{
 	{-4, -2, -3, -5, -6, -3, -2, -4},
 	{-1, -1, -1, -1, -1, -1, -1, -1},
@@ -49,17 +56,17 @@ type Game struct {
 
 func init() {
 	var err error
-	boardImg, _, err = ebitenutil.NewImageFromFile("assets/set_wooden/board_empty_wooden.png")
+	boardImg, _, err = ebitenutil.NewImageFromFile("assets/set_regular/board_empty.png")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	whitePiecesImg, _, err = ebitenutil.NewImageFromFile("assets/set_wooden/pieces_wooden_light.png")
+	whitePiecesImg, _, err = ebitenutil.NewImageFromFile("assets/set_regular/pieces_white_2.png")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	blackPiecesImg, _, err = ebitenutil.NewImageFromFile("assets/set_wooden/pieces_wooden_dark.png")
+	blackPiecesImg, _, err = ebitenutil.NewImageFromFile("assets/set_regular/pieces_black_2.png")
 	if err != nil {
 		log.Fatal(err)
 	}	
@@ -70,6 +77,13 @@ func init() {
 	whiteRook = pieces.NewWhiteRook(whitePiecesImg)
 	whiteQueen = pieces.NewWhiteQueen(whitePiecesImg)
 	whiteKing = pieces.NewWhiteKing(whitePiecesImg)
+
+	blackPawn = pieces.NewWhitePawn(blackPiecesImg)
+	blackBishop = pieces.NewWhiteBishop(blackPiecesImg)
+	blackKnight = pieces.NewWhiteKnight(blackPiecesImg)
+	blackRook = pieces.NewWhiteRook(blackPiecesImg)
+	blackQueen = pieces.NewWhiteQueen(blackPiecesImg)
+	blackKing = pieces.NewWhiteKing(blackPiecesImg)
 
 }
 
@@ -134,6 +148,18 @@ func getPieceFromId(id pieces.PieceId) pieces.GamePiece {
 		return whiteQueen
 	case pieces.WHITE_KING:
 		return whiteKing
+	case pieces.BLACK_PAWN:
+		return blackPawn
+	case pieces.BLACK_BISHOP:
+		return blackBishop
+	case pieces.BLACK_KNIGHT:
+		return blackKnight
+	case pieces.BLACK_ROOK:
+		return blackRook
+	case pieces.BLACK_QUEEN:
+		return blackQueen
+	case pieces.BLACK_KING:
+		return blackKing
 	}
 	return nil
 }
