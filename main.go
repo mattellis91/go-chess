@@ -8,7 +8,7 @@ import (
 	"log"
 
 	"github.com/mattellis91/go-chess/pieces"
-	
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -23,19 +23,19 @@ const boardPixelSize = 128
 const pieceSize = 16
 const windowSize = boardPixelSize * scale
 
-var whitePawn *pieces.WhitePawn
-var whiteBishop *pieces.WhiteBishop
-var whiteKnight *pieces.WhiteKnight
-var whiteRook *pieces.WhiteRook
-var whiteQueen *pieces.WhiteQueen
-var whiteKing *pieces.WhiteKing
+var whitePawn *pieces.Pawn
+var whiteBishop *pieces.Bishop
+var whiteKnight *pieces.Knight
+var whiteRook *pieces.Rook
+var whiteQueen *pieces.Queen
+var whiteKing *pieces.King
 
-var blackPawn *pieces.WhitePawn
-var blackBishop *pieces.WhiteBishop
-var blackKnight *pieces.WhiteKnight
-var blackRook *pieces.WhiteRook
-var blackQueen *pieces.WhiteQueen
-var blackKing *pieces.WhiteKing
+var blackPawn *pieces.Pawn
+var blackBishop *pieces.Bishop
+var blackKnight *pieces.Knight
+var blackRook *pieces.Rook
+var blackQueen *pieces.Queen
+var blackKing *pieces.King
 
 var startBoard = pieces.BoardPosition{
 	{-4, -2, -3, -5, -6, -3, -2, -4},
@@ -69,21 +69,21 @@ func init() {
 	blackPiecesImg, _, err = ebitenutil.NewImageFromFile("assets/set_regular/pieces_black_2.png")
 	if err != nil {
 		log.Fatal(err)
-	}	
+	}
 
-	whitePawn = pieces.NewWhitePawn(whitePiecesImg)
-	whiteBishop = pieces.NewWhiteBishop(whitePiecesImg)
-	whiteKnight = pieces.NewWhiteKnight(whitePiecesImg)
-	whiteRook = pieces.NewWhiteRook(whitePiecesImg)
-	whiteQueen = pieces.NewWhiteQueen(whitePiecesImg)
-	whiteKing = pieces.NewWhiteKing(whitePiecesImg)
+	whitePawn = pieces.NewPawn(whitePiecesImg)
+	whiteBishop = pieces.NewBishop(whitePiecesImg)
+	whiteKnight = pieces.NewKnight(whitePiecesImg)
+	whiteRook = pieces.NewRook(whitePiecesImg)
+	whiteQueen = pieces.NewQueen(whitePiecesImg)
+	whiteKing = pieces.NewKing(whitePiecesImg)
 
-	blackPawn = pieces.NewWhitePawn(blackPiecesImg)
-	blackBishop = pieces.NewWhiteBishop(blackPiecesImg)
-	blackKnight = pieces.NewWhiteKnight(blackPiecesImg)
-	blackRook = pieces.NewWhiteRook(blackPiecesImg)
-	blackQueen = pieces.NewWhiteQueen(blackPiecesImg)
-	blackKing = pieces.NewWhiteKing(blackPiecesImg)
+	blackPawn = pieces.NewPawn(blackPiecesImg)
+	blackBishop = pieces.NewBishop(blackPiecesImg)
+	blackKnight = pieces.NewKnight(blackPiecesImg)
+	blackRook = pieces.NewRook(blackPiecesImg)
+	blackQueen = pieces.NewQueen(blackPiecesImg)
+	blackKing = pieces.NewKing(blackPiecesImg)
 
 }
 
@@ -116,7 +116,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 				}
 			}
 		}
-	
+
 	}
 }
 
@@ -169,7 +169,7 @@ type StrokeSource interface {
 	IsJustReleased() bool
 }
 
-type MouseStrokeSource struct {}
+type MouseStrokeSource struct{}
 
 func (m *MouseStrokeSource) Position() (int, int) {
 	return ebiten.CursorPosition()
@@ -180,21 +180,21 @@ func (m *MouseStrokeSource) IsJustReleased() bool {
 }
 
 type Stroke struct {
-	source StrokeSource
-	initX int
-	initY int
-	currentX int
-	currentY int
-	released bool
+	source         StrokeSource
+	initX          int
+	initY          int
+	currentX       int
+	currentY       int
+	released       bool
 	draggingObject interface{}
 }
 
 func NewStroke(source StrokeSource) *Stroke {
 	cx, cy := source.Position()
 	return &Stroke{
-		source: source,
-		initX: cx,
-		initY: cy,
+		source:   source,
+		initX:    cx,
+		initY:    cy,
 		currentX: cx,
 		currentY: cy,
 	}
