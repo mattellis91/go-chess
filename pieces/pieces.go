@@ -163,7 +163,12 @@ func NewRook(piecesSource *ebiten.Image, pieceId PieceId) *Rook {
 }
 
 func (p *Rook) GetLegalMoves(position BoardPosition, square Square) []Square {
-	return nil
+	legalMoves := []Square{}
+	for i := 0; i < 8; i++ {
+		legalMoves = append(legalMoves, Square{i, square.Y})
+		legalMoves = append(legalMoves, Square{square.X, i})
+	}
+	return legalMoves
 }
 
 func (p *Rook) Draw(screen *ebiten.Image, square Square) {
