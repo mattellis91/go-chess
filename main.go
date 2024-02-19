@@ -54,6 +54,8 @@ var currentBoard = startBoard
 
 type Game struct {
 	strokes map[*Stroke]struct{}
+	selectedPieceSquare pieces.Square
+	colorToMove pieces.PieceColor
 }
 
 func init() {
@@ -94,22 +96,32 @@ func (g *Game) Update() error {
 		//TODO: BEGIN DRAG / STROKE
 		fmt.Println("Mouse button pressed")
 		s := NewStroke(&MouseStrokeSource{})
-		s.SetDraggingObject(pieceAtPosition(s.initX, s.initY))
-		g.strokes[s] = struct{}{}
+		selectedPiece := g.pieceAtPosition(s.initX, s.initY)
+		if selectedPiece != nil {
+			s.SetDraggingObject(selectedPiece)
+			g.strokes[s] = struct{}{} 
+		}
 	}
 
 	for s := range g.strokes {
 		g.updateStroke(s)
 		if s.IsReleased() {
+			x, y := s.Position()
+			fmt.Println("Mouse button released", x, y)
+			if(g.selectedPieceSquare.X != -1 && g.selectedPieceSquare.Y != -1) {
+				currentBoard[g.selectedPieceSquare.X][g.selectedPieceSquare.Y] = pieces.EMPTY
+				currentBoard[4][4] = pieces.WHITE_PAWN
+			}
 			delete(g.strokes, s)
 		}
 	}
+
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.DrawImage(boardImg, nil)
-	for i, row := range startBoard {
+	for i, row := range currentBoard {
 		for j, id := range row {
 			if id != 0 {
 				piece := getPieceFromId(id)
@@ -135,6 +147,8 @@ func main() {
 	ebiten.SetWindowTitle("Go Chess")
 	if err := ebiten.RunGame(&Game{
 		strokes: map[*Stroke]struct{}{},
+		selectedPieceSquare: pieces.Square{X: -1, Y: -1},
+		colorToMove: pieces.WHITE_PIECES,
 	}); err != nil {
 		fmt.Println(err)
 	}
@@ -253,14 +267,18 @@ func (g *Game) updateStroke(stroke *Stroke) {
 	//TODO: update position of piece
 }
 
-func pieceAtPosition(x, y int) pieces.GamePiece {
+func (g *Game) pieceAtPosition(x, y int) pieces.GamePiece {
 	fmt.Println("Piece at position", x, y)
 	cellX, cellY := convertToBoardPosition(x, y)
 	selectedPiece := currentBoard[cellY][cellX]
 	fmt.Println("Cell at position", cellX, cellY)
 	fmt.Println("Selected piece", selectedPiece)
-	legalSquares = getPieceFromId(selectedPiece).GetLegalMoves(currentBoard, pieces.Square{X: cellX, Y: cellY})
-	return whitePawn
+	g.selectedPieceSquare = pieces.Square{X: cellX, Y: cellY}
+	if(selectedPiece != pieces.EMPTY) {
+		legalSquares = getPieceFromId(selectedPiece).GetLegalMoves(currentBoard, pieces.Square{X: cellX, Y: cellY})
+		return whitePawn
+	}
+	return nil
 }
 
 func convertToBoardPosition(x, y int) (int, int) {
