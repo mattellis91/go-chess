@@ -48,6 +48,8 @@ var startBoard = pieces.BoardPosition{
 	{4, 2, 3, 5, 6, 3, 2, 4},
 }
 
+var legalSquares []pieces.Square
+
 var currentBoard = startBoard
 
 type Game struct {
@@ -71,19 +73,19 @@ func init() {
 		log.Fatal(err)
 	}
 
-	whitePawn = pieces.NewPawn(whitePiecesImg)
-	whiteBishop = pieces.NewBishop(whitePiecesImg)
-	whiteKnight = pieces.NewKnight(whitePiecesImg)
-	whiteRook = pieces.NewRook(whitePiecesImg)
-	whiteQueen = pieces.NewQueen(whitePiecesImg)
-	whiteKing = pieces.NewKing(whitePiecesImg)
+	whitePawn = pieces.NewPawn(whitePiecesImg, pieces.WHITE_PAWN)
+	whiteBishop = pieces.NewBishop(whitePiecesImg, pieces.WHITE_BISHOP)
+	whiteKnight = pieces.NewKnight(whitePiecesImg, pieces.WHITE_KNIGHT)
+	whiteRook = pieces.NewRook(whitePiecesImg, pieces.WHITE_ROOK)
+	whiteQueen = pieces.NewQueen(whitePiecesImg, pieces.WHITE_QUEEN)
+	whiteKing = pieces.NewKing(whitePiecesImg, pieces.WHITE_KING)
 
-	blackPawn = pieces.NewPawn(blackPiecesImg)
-	blackBishop = pieces.NewBishop(blackPiecesImg)
-	blackKnight = pieces.NewKnight(blackPiecesImg)
-	blackRook = pieces.NewRook(blackPiecesImg)
-	blackQueen = pieces.NewQueen(blackPiecesImg)
-	blackKing = pieces.NewKing(blackPiecesImg)
+	blackPawn = pieces.NewPawn(blackPiecesImg, pieces.BLACK_PAWN)
+	blackBishop = pieces.NewBishop(blackPiecesImg, pieces.BLACK_BISHOP)
+	blackKnight = pieces.NewKnight(blackPiecesImg, pieces.BLACK_KNIGHT)
+	blackRook = pieces.NewRook(blackPiecesImg, pieces.BLACK_ROOK)
+	blackQueen = pieces.NewQueen(blackPiecesImg, pieces.BLACK_QUEEN)
+	blackKing = pieces.NewKing(blackPiecesImg, pieces.BLACK_KING)
 
 }
 
@@ -116,7 +118,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 				}
 			}
 		}
+	}
 
+	for _, square := range legalSquares {
+		indicator := pieces.NewLegalSquareIndicator()
+		indicator.Draw(screen, square)
 	}
 }
 
@@ -253,6 +259,7 @@ func pieceAtPosition(x, y int) pieces.GamePiece {
 	selectedPiece := currentBoard[cellY][cellX]
 	fmt.Println("Cell at position", cellX, cellY)
 	fmt.Println("Selected piece", selectedPiece)
+	legalSquares = getPieceFromId(selectedPiece).GetLegalMoves(currentBoard, pieces.Square{X: cellX, Y: cellY})
 	return whitePawn
 }
 
