@@ -96,11 +96,12 @@ func (g *Game) Update() error {
 		//TODO: BEGIN DRAG / STROKE
 		fmt.Println("Mouse button pressed")
 		s := NewStroke(&MouseStrokeSource{})
-		selectedPiece := g.pieceAtPosition(s.initX, s.initY)
-		if selectedPiece != nil {
-			s.SetDraggingObject(selectedPiece)
-			g.strokes[s] = struct{}{} 
+		selectedPiece := pieceAtPosition(s.initX, s.initY)
+		if selectedPiece == nil {
+			selectedPiece = whitePawn
 		}
+		s.SetDraggingObject(selectedPiece)
+		g.strokes[s] = struct{}{} 
 	}
 
 	for s := range g.strokes {
@@ -108,9 +109,19 @@ func (g *Game) Update() error {
 		if s.IsReleased() {
 			x, y := s.Position()
 			fmt.Println("Mouse button released", x, y)
-			if(g.selectedPieceSquare.X != -1 && g.selectedPieceSquare.Y != -1) {
-				currentBoard[g.selectedPieceSquare.X][g.selectedPieceSquare.Y] = pieces.EMPTY
-				currentBoard[4][4] = pieces.WHITE_PAWN
+			if(g.selectedPieceSquare.X == -1 && g.selectedPieceSquare.Y == -1) {
+				x,y := convertToBoardPosition(x, y)
+				g.selectedPieceSquare = pieces.Square{X: x, Y: y}
+				fmt.Println("NO SELECTED PIECE")
+			} else {
+				fmt.Println("SELECTED PIECE")
+				x,y := convertToBoardPosition(x, y)
+				fmt.Println("SELECTED PIECE")
+				selectedPiece := currentBoard[g.selectedPieceSquare.Y][g.selectedPieceSquare.X]
+				currentBoard[y][x] = selectedPiece
+				currentBoard[g.selectedPieceSquare.Y][g.selectedPieceSquare.X] = pieces.EMPTY
+				g.selectedPieceSquare = pieces.Square{X: -1, Y: -1}
+				legalSquares = []pieces.Square{}
 			}
 			delete(g.strokes, s)
 		}
@@ -123,7 +134,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	screen.DrawImage(boardImg, nil)
 	for i, row := range currentBoard {
 		for j, id := range row {
-			if id != 0 {
+			if id != pieces.EMPTY {
 				piece := getPieceFromId(id)
 				if piece != nil {
 					piece.Draw(screen, pieces.Square{X: j, Y: i})
@@ -267,13 +278,12 @@ func (g *Game) updateStroke(stroke *Stroke) {
 	//TODO: update position of piece
 }
 
-func (g *Game) pieceAtPosition(x, y int) pieces.GamePiece {
+func pieceAtPosition(x, y int) pieces.GamePiece {
 	fmt.Println("Piece at position", x, y)
 	cellX, cellY := convertToBoardPosition(x, y)
 	selectedPiece := currentBoard[cellY][cellX]
 	fmt.Println("Cell at position", cellX, cellY)
 	fmt.Println("Selected piece", selectedPiece)
-	g.selectedPieceSquare = pieces.Square{X: cellX, Y: cellY}
 	if(selectedPiece != pieces.EMPTY) {
 		legalSquares = getPieceFromId(selectedPiece).GetLegalMoves(currentBoard, pieces.Square{X: cellX, Y: cellY})
 		return whitePawn
