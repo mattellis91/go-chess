@@ -118,10 +118,22 @@ func (g *Game) Update() error {
 				x,y := convertToBoardPosition(x, y)
 				fmt.Println("SELECTED PIECE")
 				selectedPiece := currentBoard[g.selectedPieceSquare.Y][g.selectedPieceSquare.X]
-				currentBoard[y][x] = selectedPiece
-				currentBoard[g.selectedPieceSquare.Y][g.selectedPieceSquare.X] = pieces.EMPTY
-				g.selectedPieceSquare = pieces.Square{X: -1, Y: -1}
-				legalSquares = []pieces.Square{}
+				if (selectedPiece >= pieces.EMPTY && g.colorToMove == pieces.WHITE_PIECES) || 
+					(selectedPiece <= pieces.EMPTY && g.colorToMove == pieces.BLACK_PIECES) { 
+					currentBoard[y][x] = selectedPiece
+					currentBoard[g.selectedPieceSquare.Y][g.selectedPieceSquare.X] = pieces.EMPTY
+					g.selectedPieceSquare = pieces.Square{X: -1, Y: -1}
+					legalSquares = []pieces.Square{}
+					if g.colorToMove == pieces.WHITE_PIECES {
+						g.colorToMove = pieces.BLACK_PIECES
+					} else {
+						g.colorToMove = pieces.WHITE_PIECES
+					}
+				} else {
+					g.selectedPieceSquare = pieces.Square{X: -1, Y: -1}
+					legalSquares = []pieces.Square{}
+				}
+
 			}
 			delete(g.strokes, s)
 		}
