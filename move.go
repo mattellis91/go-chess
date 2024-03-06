@@ -7,6 +7,7 @@ type Move struct {
 	EndCol int	
 	PieceMoved string
 	PieceCaptured string
+	MoveId int
 }
 
 func NewMove (startSquare Square, endSquare Square, boardState BoardState) Move {
@@ -17,6 +18,7 @@ func NewMove (startSquare Square, endSquare Square, boardState BoardState) Move 
 		EndCol: endSquare.col,
 		PieceMoved: boardState[startSquare.row][startSquare.col],
 		PieceCaptured: boardState[endSquare.row][endSquare.col],
+		MoveId: startSquare.row * 1000 + startSquare.col * 100 + endSquare.row * 10 + endSquare.col,
 	}
 }
 

@@ -46,6 +46,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 func (g *Game) Init() {
 	loadAssets()
+	g.GameState.ValidMoves = g.GameState.GetValidMoves()
 }
 
 func handleInput(g *Game) {
@@ -64,7 +65,10 @@ func handleInput(g *Game) {
 		
 		if len(g.GameState.PlayerClicks) == 2 {
 			m := NewMove(g.GameState.PlayerClicks[0], g.GameState.PlayerClicks[1], g.GameState.Board)
-			g.GameState.MakeMove(m)
+			if g.GameState.IsValidMove(m) {
+				g.GameState.MakeMove(m)
+				g.GameState.MoveMade = true
+			}
 			fmt.Println(m.GetChessNotation())
 			resetClicks(g.GameState)
 		}
@@ -72,6 +76,12 @@ func handleInput(g *Game) {
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyZ) {
 		g.GameState.UndoMove()
+		g.GameState.MoveMade = true		
+	}
+
+	if g.GameState.MoveMade {
+		g.GameState.ValidMoves = g.GameState.GetValidMoves()
+		g.GameState.MoveMade = false
 	}
 }
 
