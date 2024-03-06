@@ -33,3 +33,14 @@ func (gs *GameState) MakeMove(move Move) {
 	gs.MoveLog = append(gs.MoveLog, move)
 	gs.WhiteToMove = !gs.WhiteToMove
 }
+
+func (gs *GameState) UndoMove() {
+	if len(gs.MoveLog) == 0 {
+		return
+	}
+	move := gs.MoveLog[len(gs.MoveLog)-1]
+	gs.Board[move.StartRow][move.StartCol] = move.PieceMoved
+	gs.Board[move.EndRow][move.EndCol] = move.PieceCaptured
+	gs.MoveLog = gs.MoveLog[:len(gs.MoveLog)-1]
+	gs.WhiteToMove = !gs.WhiteToMove
+}

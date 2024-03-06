@@ -69,6 +69,10 @@ func handleInput(g *Game) {
 			resetClicks(g.GameState)
 		}
 	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyZ) {
+		g.GameState.UndoMove()
+	}
 }
 
 func loadAssets() {
