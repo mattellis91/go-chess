@@ -54,9 +54,7 @@ func (gs *GameState) GetValidMoves() []Move {
 }
 
 func (gs *GameState) IsValidMove(move Move) bool {
-	fmt.Print(move)
 	for _, validMove := range gs.ValidMoves {
-		fmt.Print(validMove)
 		if move.MoveId == validMove.MoveId {
 			return true
 		}
@@ -94,29 +92,29 @@ func (gs *GameState) GetAllPossibleMoves() []Move {
 func (gs *GameState) GetPawnMoves(r int, c int) []Move {
 	moves := []Move{}
 	if gs.WhiteToMove {
-		if r-1 >= 0 && gs.Board[r-1][c] == "--" {
+		if r-1 >= 0 && gs.Board[r-1][c] == "--" { //move one square
 			moves = append(moves, NewMove(Square{r, c}, Square{r-1, c}, gs.Board))
-			if r == 6 && gs.Board[r-2][c] == "--" {
+			if r == 6 && gs.Board[r-2][c] == "--" { //move two squares
 				moves = append(moves, NewMove(Square{r, c}, Square{r-2, c}, gs.Board))
 			}
 		}
-		if r-1 >= 0 && c-1 >= 0 && gs.Board[r-1][c-1][0] == 'b' {
+		if r-1 >= 0 && c-1 >= 0 && gs.Board[r-1][c-1][0] == 'b' { //capture to the left
 			moves = append(moves, NewMove(Square{r, c}, Square{r-1, c-1}, gs.Board))
 		}
-		if r-1 >= 0 && c+1 < 8 && gs.Board[r-1][c+1][0] == 'b' {
+		if r-1 >= 0 && c+1 < 8 && gs.Board[r-1][c+1][0] == 'b' { //capture to the right
 			moves = append(moves, NewMove(Square{r, c}, Square{r-1, c+1}, gs.Board))
 		}
 	} else {
-		if r+1 < 8 && gs.Board[r+1][c] == "--" {
+		if r+1 < 8 && gs.Board[r+1][c] == "--" { //move one square
 			moves = append(moves, NewMove(Square{r, c}, Square{r+1, c}, gs.Board))
-			if r == 1 && gs.Board[r+2][c] == "--" {
+			if r == 1 && gs.Board[r+2][c] == "--" { //move two squares
 				moves = append(moves, NewMove(Square{r, c}, Square{r+2, c}, gs.Board))
 			}
 		}
-		if r+1 < 8 && c-1 >= 0 && gs.Board[r+1][c-1][0] == 'w' {
+		if r+1 < 8 && c-1 >= 0 && gs.Board[r+1][c-1][0] == 'w' { //capture to the left
 			moves = append(moves, NewMove(Square{r, c}, Square{r+1, c-1}, gs.Board))
 		}
-		if r+1 < 8 && c+1 < 8 && gs.Board[r+1][c+1][0] == 'w' {
+		if r+1 < 8 && c+1 < 8 && gs.Board[r+1][c+1][0] == 'w' { //capture to the right
 			moves = append(moves, NewMove(Square{r, c}, Square{r+1, c+1}, gs.Board))
 		}
 	}
@@ -124,7 +122,57 @@ func (gs *GameState) GetPawnMoves(r int, c int) []Move {
 }
 
 func (gs *GameState) GetRookMoves(r int, c int) []Move {
-	return []Move{}
+	moves := []Move{}
+	//move up
+	colorToCapture := 'b'
+	if !gs.WhiteToMove {
+		colorToCapture = 'w'
+	} 
+	for i := r-1; i >= 0; i-- {
+		if gs.Board[i][c] == "--" {
+			moves = append(moves, NewMove(Square{r, c}, Square{i, c}, gs.Board))
+		} else if gs.Board[i][c][0] == byte(colorToCapture) {
+			moves = append(moves, NewMove(Square{r, c}, Square{i, c}, gs.Board))
+			break
+		} else {
+			break
+		}
+	}
+	//move down
+	for i := r+1; i < DIMENSIONS; i++ {
+		if gs.Board[i][c] == "--" {
+			moves = append(moves, NewMove(Square{r, c}, Square{i, c}, gs.Board))
+		} else if gs.Board[i][c][0] == byte(colorToCapture) {
+			moves = append(moves, NewMove(Square{r, c}, Square{i, c}, gs.Board))
+			break
+		} else {
+			break
+		}
+	}
+	//move left
+	for i := c-1; i >= 0; i-- {
+		if gs.Board[r][i] == "--" {
+			moves = append(moves, NewMove(Square{r, c}, Square{r, i}, gs.Board))
+		} else if gs.Board[r][i][0] == byte(colorToCapture) {
+			moves = append(moves, NewMove(Square{r, c}, Square{r, i}, gs.Board))
+			break
+		} else {
+			break
+		}
+	}
+	//move right
+	for i := c+1; i < DIMENSIONS; i++ {
+		if gs.Board[r][i] == "--" {
+			moves = append(moves, NewMove(Square{r, c}, Square{r, i}, gs.Board))
+		} else if gs.Board[r][i][0] == byte(colorToCapture) {
+			moves = append(moves, NewMove(Square{r, c}, Square{r, i}, gs.Board))
+			break
+		} else {
+			break
+		}
+	}
+	fmt.Print(moves)
+	return moves
 }
 
 func (gs *GameState) GetKnightMoves(r int, c int) []Move {
