@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 type BoardState [8][8]string
 
 type GameState struct {
@@ -12,6 +10,11 @@ type GameState struct {
 	PlayerClicks []Square
 	ValidMoves []Move
 	MoveMade bool
+}
+
+type PieceDelta struct {
+	row int
+	col int
 }
 
 func NewGameState() *GameState {
@@ -123,72 +126,89 @@ func (gs *GameState) GetPawnMoves(r int, c int) []Move {
 
 func (gs *GameState) GetRookMoves(r int, c int) []Move {
 	moves := []Move{}
-	//move up
-	colorToCapture := 'b'
-	if !gs.WhiteToMove {
-		colorToCapture = 'w'
-	} 
-	for i := r-1; i >= 0; i-- {
-		if gs.Board[i][c] == "--" {
-			moves = append(moves, NewMove(Square{r, c}, Square{i, c}, gs.Board))
-		} else if gs.Board[i][c][0] == byte(colorToCapture) {
-			moves = append(moves, NewMove(Square{r, c}, Square{i, c}, gs.Board))
-			break
-		} else {
-			break
+	directions := []PieceDelta{{-1, 0}, {1, 0}, {0, -1}, {0, 1}}
+	for _, direction := range directions {
+		for i := 1; i < 8; i++ {
+			endRow := r + direction.row * i
+			endCol := c + direction.col * i
+			if endRow < 0 || endRow >= 8 || endCol < 0 || endCol >= 8 {
+				break
+			}
+			if gs.Board[endRow][endCol] == "--" {
+				moves = append(moves, NewMove(Square{r, c}, Square{endRow, endCol}, gs.Board))
+			} else {
+				if gs.Board[endRow][endCol][0] != gs.Board[r][c][0] { //enemy piece
+					moves = append(moves, NewMove(Square{r, c}, Square{endRow, endCol}, gs.Board))
+				}
+				break
+			}
 		}
 	}
-	//move down
-	for i := r+1; i < DIMENSIONS; i++ {
-		if gs.Board[i][c] == "--" {
-			moves = append(moves, NewMove(Square{r, c}, Square{i, c}, gs.Board))
-		} else if gs.Board[i][c][0] == byte(colorToCapture) {
-			moves = append(moves, NewMove(Square{r, c}, Square{i, c}, gs.Board))
-			break
-		} else {
-			break
-		}
-	}
-	//move left
-	for i := c-1; i >= 0; i-- {
-		if gs.Board[r][i] == "--" {
-			moves = append(moves, NewMove(Square{r, c}, Square{r, i}, gs.Board))
-		} else if gs.Board[r][i][0] == byte(colorToCapture) {
-			moves = append(moves, NewMove(Square{r, c}, Square{r, i}, gs.Board))
-			break
-		} else {
-			break
-		}
-	}
-	//move right
-	for i := c+1; i < DIMENSIONS; i++ {
-		if gs.Board[r][i] == "--" {
-			moves = append(moves, NewMove(Square{r, c}, Square{r, i}, gs.Board))
-		} else if gs.Board[r][i][0] == byte(colorToCapture) {
-			moves = append(moves, NewMove(Square{r, c}, Square{r, i}, gs.Board))
-			break
-		} else {
-			break
-		}
-	}
-	fmt.Print(moves)
 	return moves
 }
 
 func (gs *GameState) GetKnightMoves(r int, c int) []Move {
-	return []Move{}
+	moves := []Move{}
+	directions := []PieceDelta{{-2, -1}, {-2, 1}, {-1, -2}, {-1, 2}, {1, -2}, {1, 2}, {2, -1}, {2, 1}}
+	for _, direction := range directions {
+		endRow := r + direction.row
+		endCol := c + direction.col
+		if endRow >= 0 && endRow < 8 && endCol >= 0 && endCol < 8 { 
+			if gs.Board[endRow][endCol] == "--" || gs.Board[endRow][endCol][0] != gs.Board[r][c][0] { //empty square or enemy piece
+				moves = append(moves, NewMove(Square{r, c}, Square{endRow, endCol}, gs.Board))
+			}
+		}
+	
+	}
+	return moves
 }
 
 func (gs *GameState) GetBishopMoves(r int, c int) []Move {
-	return []Move{}
+	moves := []Move{}
+	directions := []PieceDelta{{-1, -1}, {-1, 1}, {1, -1}, {1, 1}}
+	for _, direction := range directions {
+		for i := 1; i < 8; i++ {
+			endRow := r + direction.row * i
+			endCol := c + direction.col * i
+			if endRow < 0 || endRow >= 8 || endCol < 0 || endCol >= 8 {
+				break
+			}
+			if gs.Board[endRow][endCol] == "--" {
+				moves = append(moves, NewMove(Square{r, c}, Square{endRow, endCol}, gs.Board))
+			} else {
+				if gs.Board[endRow][endCol][0] != gs.Board[r][c][0] { //enemy piece
+					moves = append(moves, NewMove(Square{r, c}, Square{endRow, endCol}, gs.Board))
+				}
+				break
+			}
+		}
+	
+	}
+	return moves
 }
 
 func (gs *GameState) GetQueenMoves(r int, c int) []Move {
-	return []Move{}
+	moves := []Move{}
+	rookMoves := gs.GetRookMoves(r, c)
+	bishopMoves := gs.GetBishopMoves(r, c)
+	moves = append(moves, rookMoves...)
+	moves = append(moves, bishopMoves...)
+	return moves
 }
 
 func (gs *GameState) GetKingMoves(r int, c int) []Move {
-	return []Move{}
+	mmoves := []Move{}
+	directions := []PieceDelta{{-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}}
+	for _, direction := range directions {
+		endRow := r + direction.row
+		endCol := c + direction.col
+		if endRow >= 0 && endRow < 8 && endCol >= 0 && endCol < 8 { 
+			if gs.Board[endRow][endCol] == "--" || gs.Board[endRow][endCol][0] != gs.Board[r][c][0] { //empty square or enemy piece
+				mmoves = append(mmoves, NewMove(Square{r, c}, Square{endRow, endCol}, gs.Board))
+			}
+		}
+	}
+	return mmoves
 }
 
 
