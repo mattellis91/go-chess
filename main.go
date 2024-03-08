@@ -68,9 +68,11 @@ func handleInput(g *Game) {
 			if g.GameState.IsValidMove(m) {
 				g.GameState.MakeMove(m)
 				g.GameState.MoveMade = true
+				resetClicks(g.GameState)
+			} else {
+				g.GameState.PlayerClicks = []Square{g.GameState.SquareSelected}
 			}
 			fmt.Println(m.GetChessNotation())
-			resetClicks(g.GameState)
 		}
 	}
 
