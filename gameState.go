@@ -31,7 +31,12 @@ func NewGameState() *GameState {
 		},
 		WhiteToMove: true,
 		MoveMade: false,
+		SquareSelected: GetNullSquare(),
 	}
+}
+
+func GetNullSquare() Square {
+	return Square{-1, -1}
 }
 
 func (gs *GameState) MakeMove(move Move) {

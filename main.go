@@ -21,6 +21,7 @@ const (
 var pieceImages = map[string]*ebiten.Image{}
 var whiteSquareColor = color.RGBA{238, 238, 210, 255}
 var BlackSquareColor = color.RGBA{118, 150, 86, 255}
+var selectedPieceSquareColor = color.RGBA{255, 0, 0, 50}
 
 type Game struct {
 	GameState *GameState
@@ -99,7 +100,7 @@ func loadAssets() {
 }
 
 func resetClicks(gs *GameState) {
-	gs.SquareSelected = Square{}
+	gs.SquareSelected = GetNullSquare()
 	gs.PlayerClicks = []Square{}
 }
 
@@ -126,6 +127,10 @@ func drawPieces(screen *ebiten.Image, gs *GameState) {
 				screen.DrawImage(img, op)
 			}
 		}
+	}
+
+	if gs.SquareSelected.row != -1 && gs.SquareSelected.col != -1 {
+		vector.DrawFilledRect(screen, float32(gs.SquareSelected.col*SQUARE_SIZE), float32(gs.SquareSelected.row*SQUARE_SIZE), float32(SQUARE_SIZE), float32(SQUARE_SIZE), selectedPieceSquareColor, false)
 	}
 }
 
