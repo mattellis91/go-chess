@@ -21,7 +21,8 @@ const (
 var pieceImages = map[string]*ebiten.Image{}
 var whiteSquareColor = color.RGBA{238, 238, 210, 255}
 var BlackSquareColor = color.RGBA{118, 150, 86, 255}
-var selectedPieceSquareColor = color.RGBA{255, 0, 0, 50}
+var selectedPieceSquareColor = color.RGBA{255, 255, 0, 50}
+var higlightedSquareColor = color.RGBA{255, 0, 0, 50}
 
 type Game struct {
 	GameState *GameState
@@ -77,9 +78,25 @@ func handleInput(g *Game) {
 		}
 	}
 
+	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonRight) {
+		mouseX, mouseY := ebiten.CursorPosition()
+		row := mouseY / SQUARE_SIZE
+		col := mouseX / SQUARE_SIZE
+		selectedSquare := Square{row, col}
+		if !g.GameState.SquareAlreadyHighlighted(selectedSquare) {
+			g.GameState.higlightedSquares = append(g.GameState.higlightedSquares, selectedSquare)
+		} else {
+			g.GameState.higlightedSquares = g.GameState.RemoveSquareFromSlice(g.GameState.higlightedSquares, selectedSquare)
+		}
+	}
+
 	if inpututil.IsKeyJustPressed(ebiten.KeyZ) {
 		g.GameState.UndoMove()
 		g.GameState.MoveMade = true		
+	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+		g.GameState.higlightedSquares = []Square{}
 	}
 
 	if g.GameState.MoveMade {
@@ -117,6 +134,15 @@ func drawBoard(screen *ebiten.Image) {
 }
 
 func drawPieces(screen *ebiten.Image, gs *GameState) {
+
+	if gs.SquareSelected.row != -1 && gs.SquareSelected.col != -1 {
+		vector.DrawFilledRect(screen, float32(gs.SquareSelected.col*SQUARE_SIZE), float32(gs.SquareSelected.row*SQUARE_SIZE), float32(SQUARE_SIZE), float32(SQUARE_SIZE), selectedPieceSquareColor, false)
+	}
+
+	for _, square := range gs.higlightedSquares {
+		vector.DrawFilledRect(screen, float32(square.col*SQUARE_SIZE), float32(square.row*SQUARE_SIZE), float32(SQUARE_SIZE), float32(SQUARE_SIZE), higlightedSquareColor, false)
+	}
+	
 	for r := 0; r < DIMENSIONS; r++ {
 		for c := 0; c < DIMENSIONS; c++ {
 			piece := gs.Board[r][c]
@@ -127,11 +153,7 @@ func drawPieces(screen *ebiten.Image, gs *GameState) {
 				screen.DrawImage(img, op)
 			}
 		}
-	}
-
-	if gs.SquareSelected.row != -1 && gs.SquareSelected.col != -1 {
-		vector.DrawFilledRect(screen, float32(gs.SquareSelected.col*SQUARE_SIZE), float32(gs.SquareSelected.row*SQUARE_SIZE), float32(SQUARE_SIZE), float32(SQUARE_SIZE), selectedPieceSquareColor, false)
-	}
+	}	
 }
 
 func main() {

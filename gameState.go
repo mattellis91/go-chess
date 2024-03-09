@@ -10,6 +10,7 @@ type GameState struct {
 	PlayerClicks []Square
 	ValidMoves []Move
 	MoveMade bool
+	higlightedSquares []Square
 }
 
 type PieceDelta struct {
@@ -68,6 +69,24 @@ func (gs *GameState) IsValidMove(move Move) bool {
 		}
 	}
 	return false
+}
+
+func (gs *GameState) SquareAlreadyHighlighted(square Square) bool {
+	for _, currentSquare := range gs.higlightedSquares {
+		if square == currentSquare {
+			return true
+		}
+	}
+	return false
+}
+
+func (gs *GameState) RemoveSquareFromSlice(squares []Square, square Square) []Square {
+	for i, currentSquare := range squares {
+		if currentSquare == square {
+			return append(squares[:i], squares[i+1:]...)
+		}
+	}
+	return squares
 }
 
 func (gs *GameState) GetAllPossibleMoves() []Move {
