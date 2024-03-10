@@ -64,7 +64,7 @@ func handleInput(g *Game) {
 			g.GameState.SquareSelected = Square{row, col}
 			g.GameState.PlayerClicks = append(g.GameState.PlayerClicks, g.GameState.SquareSelected)
 		}
-		
+
 		if len(g.GameState.PlayerClicks) == 2 {
 			m := NewMove(g.GameState.PlayerClicks[0], g.GameState.PlayerClicks[1], g.GameState.Board)
 			if g.GameState.IsValidMove(m) {
@@ -84,19 +84,19 @@ func handleInput(g *Game) {
 		col := mouseX / SQUARE_SIZE
 		selectedSquare := Square{row, col}
 		if !g.GameState.SquareAlreadyHighlighted(selectedSquare) {
-			g.GameState.higlightedSquares = append(g.GameState.higlightedSquares, selectedSquare)
+			g.GameState.HiglightedSquares = append(g.GameState.HiglightedSquares, selectedSquare)
 		} else {
-			g.GameState.higlightedSquares = g.GameState.RemoveSquareFromSlice(g.GameState.higlightedSquares, selectedSquare)
+			g.GameState.HiglightedSquares = g.GameState.RemoveSquareFromSlice(g.GameState.HiglightedSquares, selectedSquare)
 		}
 	}
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyZ) {
 		g.GameState.UndoMove()
-		g.GameState.MoveMade = true		
+		g.GameState.MoveMade = true
 	}
 
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
-		g.GameState.higlightedSquares = []Square{}
+		g.GameState.HiglightedSquares = []Square{}
 	}
 
 	if g.GameState.MoveMade {
@@ -139,10 +139,10 @@ func drawPieces(screen *ebiten.Image, gs *GameState) {
 		vector.DrawFilledRect(screen, float32(gs.SquareSelected.col*SQUARE_SIZE), float32(gs.SquareSelected.row*SQUARE_SIZE), float32(SQUARE_SIZE), float32(SQUARE_SIZE), selectedPieceSquareColor, false)
 	}
 
-	for _, square := range gs.higlightedSquares {
+	for _, square := range gs.HiglightedSquares {
 		vector.DrawFilledRect(screen, float32(square.col*SQUARE_SIZE), float32(square.row*SQUARE_SIZE), float32(SQUARE_SIZE), float32(SQUARE_SIZE), higlightedSquareColor, false)
 	}
-	
+
 	for r := 0; r < DIMENSIONS; r++ {
 		for c := 0; c < DIMENSIONS; c++ {
 			piece := gs.Board[r][c]
@@ -153,7 +153,7 @@ func drawPieces(screen *ebiten.Image, gs *GameState) {
 				screen.DrawImage(img, op)
 			}
 		}
-	}	
+	}
 }
 
 func main() {
