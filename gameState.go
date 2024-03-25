@@ -64,6 +64,11 @@ func (gs *GameState) MakeMove(move Move) {
 		gs.BlackKingSquare = Square{move.EndRow, move.EndCol}
 	}
 
+	//TODO: ADD option select piece to promote to
+	if move.IsPawnPromotion {
+		gs.Board[move.EndRow][move.EndCol] = move.PieceMoved[:1] + "Q"
+	}
+
 	gs.WhiteToMove = !gs.WhiteToMove
 
 }

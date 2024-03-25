@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"log"
+	"reflect"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -67,13 +68,20 @@ func handleInput(g *Game) {
 
 		if len(g.GameState.PlayerClicks) == 2 {
 			m := NewMove(g.GameState.PlayerClicks[0], g.GameState.PlayerClicks[1], g.GameState.Board)
-			if g.GameState.IsValidMove(m) {
-				g.GameState.MakeMove(m)
-				g.GameState.MoveMade = true
-				resetClicks(g.GameState)
-			} else {
+
+			for _, move := range g.GameState.ValidMoves {
+				if  reflect.DeepEqual(m, move) {
+					g.GameState.MakeMove(m)
+					g.GameState.MoveMade = true
+					resetClicks(g.GameState)
+					break
+				}
+			}
+
+			if !g.GameState.MoveMade {
 				g.GameState.PlayerClicks = []Square{g.GameState.SquareSelected}
 			}
+			
 			fmt.Println(m.GetChessNotation())
 		}
 	}
