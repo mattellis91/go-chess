@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"image/color"
 	"log"
-	"reflect"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -70,8 +69,8 @@ func handleInput(g *Game) {
 			m := NewMove(g.GameState.PlayerClicks[0], g.GameState.PlayerClicks[1], g.GameState.Board)
 
 			for _, move := range g.GameState.ValidMoves {
-				if  reflect.DeepEqual(m, move) {
-					g.GameState.MakeMove(m)
+				if  m.MoveId == move.MoveId {
+					g.GameState.MakeMove(move)
 					g.GameState.MoveMade = true
 					resetClicks(g.GameState)
 					break

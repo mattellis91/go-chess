@@ -1,5 +1,10 @@
 package main
 
+import (
+	"fmt"
+	"math"
+)
+
 type BoardState [8][8]string
 
 type GameState struct {
@@ -47,6 +52,7 @@ func NewGameState() *GameState {
 		WhiteToMove:    true,
 		MoveMade:       false,
 		SquareSelected: GetNullSquare(),
+		EnPassantSquare: GetNullSquare(),
 	}
 }
 
@@ -55,6 +61,10 @@ func GetNullSquare() Square {
 }
  
 func (gs *GameState) MakeMove(move Move) {
+
+
+	fmt.Printf("%v", move)
+
 	gs.Board[move.StartRow][move.StartCol] = "--"
 	gs.Board[move.EndRow][move.EndCol] = move.PieceMoved
 	gs.MoveLog = append(gs.MoveLog, move)
@@ -70,24 +80,53 @@ func (gs *GameState) MakeMove(move Move) {
 		gs.Board[move.EndRow][move.EndCol] = move.PieceMoved[:1] + "Q"
 	}
 
+	if move.IsEnPassant {
+		gs.Board[move.StartRow][move.EndCol] = "--"
+	}
+
+	if move.PieceMoved[1] == 'p' && math.Abs(float64(move.StartRow-move.EndRow)) == 2 {
+		gs.EnPassantSquare = Square{(move.StartRow + move.EndRow) / 2, move.StartCol}
+	} else {
+		gs.EnPassantSquare = GetNullSquare()
+	}
+
+	fmt.Println(gs.EnPassantSquare)
+
 	gs.WhiteToMove = !gs.WhiteToMove
 
 }
 
 func (gs *GameState) UndoMove() {
+
+	fmt.Println("undo move")
+
 	if len(gs.MoveLog) == 0 {
 		return
 	}
 	move := gs.MoveLog[len(gs.MoveLog)-1]
+
+	fmt.Printf("%v", move)
+
 	gs.Board[move.StartRow][move.StartCol] = move.PieceMoved
 	gs.Board[move.EndRow][move.EndCol] = move.PieceCaptured
-	gs.MoveLog = gs.MoveLog[:len(gs.MoveLog)-1]
-
+	
 	if move.PieceMoved == "wK" {
 		gs.WhiteKingSquare = Square{move.StartRow, move.StartCol}
 	} else if move.PieceMoved == "bK" {
 		gs.BlackKingSquare = Square{move.StartRow, move.StartCol}
 	}
+
+	if move.IsEnPassant {
+		gs.Board[move.StartRow][move.EndCol] = move.PieceCaptured
+		gs.Board[move.EndRow][move.EndCol] = "--"
+		gs.EnPassantSquare = Square{move.EndRow, move.EndCol}
+	}
+
+	if move.PieceMoved[1] == 'p' && math.Abs(float64(move.StartRow-move.EndRow)) == 2 {
+		gs.EnPassantSquare = GetNullSquare()
+	}
+
+	gs.MoveLog = gs.MoveLog[:len(gs.MoveLog)-1]
 
 	gs.WhiteToMove = !gs.WhiteToMove
 }
@@ -311,6 +350,10 @@ func (gs *GameState) GetPawnMoves(r int, c int) []Move {
 	}
 
 
+	fmt.Print("pawn moves")
+	fmt.Println(gs.EnPassantSquare)
+
+
 	if gs.WhiteToMove {
 		if r-1 >= 0 && gs.Board[r-1][c] == "--" { //move one square
 			if !piecePinned || pinDirection == (PieceDelta{-1, 0}) {
@@ -324,11 +367,16 @@ func (gs *GameState) GetPawnMoves(r int, c int) []Move {
 			if !piecePinned || pinDirection == (PieceDelta{-1, -1}) {
 				moves = append(moves, NewMove(Square{r, c}, Square{r - 1, c - 1}, gs.Board))
 			}
+		} else if r-1 == gs.EnPassantSquare.row && c-1 == gs.EnPassantSquare.col {  //en passant capture to the left
+			moves = append(moves, NewMoveWithEnPassant(Square{r, c}, Square{r - 1, c - 1}, gs.Board, true))
 		}
 		if r-1 >= 0 && c+1 < 8 && gs.Board[r-1][c+1][0] == 'b' { //capture to the right
 			if !piecePinned || pinDirection == (PieceDelta{-1, 1}) {
 				moves = append(moves, NewMove(Square{r, c}, Square{r - 1, c + 1}, gs.Board))
 			}
+		} else if r-1 == gs.EnPassantSquare.row && c+1 == gs.EnPassantSquare.col { //en passant capture to the right
+			fmt.Println("en passant capture to the right")
+			moves = append(moves, NewMoveWithEnPassant(Square{r, c}, Square{r - 1, c + 1}, gs.Board, true))
 		}
 	} else {
 		if r+1 < 8 && gs.Board[r+1][c] == "--" { //move one square
@@ -343,11 +391,15 @@ func (gs *GameState) GetPawnMoves(r int, c int) []Move {
 			if !piecePinned || pinDirection == (PieceDelta{1, -1}) {
 				moves = append(moves, NewMove(Square{r, c}, Square{r + 1, c - 1}, gs.Board))
 			}
+		} else if r+1 == gs.EnPassantSquare.row && c-1 == gs.EnPassantSquare.col { //en passant capture to the left
+			moves = append(moves, NewMoveWithEnPassant(Square{r, c}, Square{r + 1, c - 1}, gs.Board, true))
 		}
 		if r+1 < 8 && c+1 < 8 && gs.Board[r+1][c+1][0] == 'w' { //capture to the right
 			if !piecePinned || pinDirection == (PieceDelta{1, 1}) {
 				moves = append(moves, NewMove(Square{r, c}, Square{r + 1, c + 1}, gs.Board))
 			}
+		} else if r+1 == gs.EnPassantSquare.row && c+1 == gs.EnPassantSquare.col { //en passant capture to the right
+			moves = append(moves, NewMoveWithEnPassant(Square{r, c}, Square{r + 1, c + 1}, gs.Board, true))
 		}
 	}
 	return moves
