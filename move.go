@@ -1,5 +1,9 @@
 package main
 
+import (
+	"reflect"
+)
+
 type Move struct {
 	StartRow int
 	StartCol int
@@ -8,17 +12,19 @@ type Move struct {
 	PieceMoved string
 	PieceCaptured string
 	IsPawnPromotion bool
+	IsEnPassant bool
 	MoveId int
 }
 
 func NewMove (startSquare Square, endSquare Square, boardState BoardState) Move {
+	return NewMoveWithEnPassant(startSquare, endSquare, boardState, GetNullSquare()) 
+}
 
+func NewMoveWithEnPassant (startSquare Square, endSquare Square, boardState BoardState, enPanssantSquare Square) Move {
 	pieceMoved := boardState[startSquare.row][startSquare.col]
-	IsPawnPromotion := false
-
-	if (pieceMoved == "wp" && endSquare.row == 0) || (pieceMoved == "bp" && endSquare.row == 7) {
-		IsPawnPromotion = true
-	}
+	
+	IsPawnPromotion := (pieceMoved == "wp" && endSquare.row == 0) || (pieceMoved == "bp" && endSquare.row == 7)
+	IsEnPassant := pieceMoved[1] == 'p' && reflect.DeepEqual(enPanssantSquare, endSquare)
 
 	return Move{
 		StartRow: startSquare.row,
@@ -28,6 +34,7 @@ func NewMove (startSquare Square, endSquare Square, boardState BoardState) Move 
 		PieceMoved: pieceMoved,
 		PieceCaptured: boardState[endSquare.row][endSquare.col],
 		IsPawnPromotion: IsPawnPromotion,
+		IsEnPassant: IsEnPassant,
 		MoveId: startSquare.row * 1000 + startSquare.col * 100 + endSquare.row * 10 + endSquare.col,
 	}
 }

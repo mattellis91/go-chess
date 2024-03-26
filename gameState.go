@@ -17,7 +17,8 @@ type GameState struct {
 	Stalemate		 bool
 	CheckState		 bool
 	Pins		     []AttactedSquare
-	Checks		    []AttactedSquare
+	Checks		     []AttactedSquare
+	EnPassantSquare   Square
 }
 
 type PieceDelta struct {
