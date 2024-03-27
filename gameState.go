@@ -117,9 +117,18 @@ func (gs *GameState) UndoMove() {
 	}
 
 	if move.IsEnPassant {
+		
 		gs.Board[move.StartRow][move.EndCol] = move.PieceCaptured
 		gs.Board[move.EndRow][move.EndCol] = "--"
+		
+		if gs.WhiteToMove {
+			gs.Board[move.EndRow - 1][move.EndCol] = "wp"
+		} else {
+			gs.Board[move.EndRow + 1][move.EndCol] = "bp"
+		}
+
 		gs.EnPassantSquare = Square{move.EndRow, move.EndCol}
+
 	}
 
 	if move.PieceMoved[1] == 'p' && math.Abs(float64(move.StartRow-move.EndRow)) == 2 {
