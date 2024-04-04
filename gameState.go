@@ -24,6 +24,8 @@ type GameState struct {
 	Pins		     []AttactedSquare
 	Checks		     []AttactedSquare
 	EnPassantSquare   Square
+	CastleRights	 CastleRights
+	CastleRightsLog  []CastleRights
 }
 
 type PieceDelta struct {
@@ -38,6 +40,7 @@ type AttactedSquare struct {
 }
 
 func NewGameState() *GameState {
+
 	return &GameState{
 		Board: BoardState{
 			{"bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"},
@@ -53,6 +56,8 @@ func NewGameState() *GameState {
 		MoveMade:       false,
 		SquareSelected: GetNullSquare(),
 		EnPassantSquare: GetNullSquare(),
+		CastleRights: CastleRights{true, true, true, true},
+		CastleRightsLog: []CastleRights{{true, true, true, true}},
 	}
 }
 
@@ -89,11 +94,42 @@ func (gs *GameState) MakeMove(move Move) {
 	} else {
 		gs.EnPassantSquare = GetNullSquare()
 	}
-
-	fmt.Println(gs.EnPassantSquare)
+	
+	gs.UpdateCastleRights(move)
 
 	gs.WhiteToMove = !gs.WhiteToMove
 
+}
+
+func (gs *GameState) UpdateCastleRights (move Move) {
+	if move.PieceMoved == "wk" {
+		gs.CastleRights.wks = false
+		gs.CastleRights.wqs = false
+	} else if move.PieceMoved == "bk" {
+		gs.CastleRights.bks = false
+		gs.CastleRights.bqs = false
+	} else if move.PieceMoved == "wr" {
+		if move.StartRow == 7 {
+			if move.StartCol == 0 {
+				gs.CastleRights.wqs = false
+			} else if move.StartCol == 7 {
+				gs.CastleRights.wks = false
+			}
+		}
+	} else if move.PieceMoved == "br" {
+		if move.StartRow == 0 {
+			if move.StartCol == 0 {
+				gs.CastleRights.bqs = false
+			} else if move.StartCol == 7 {
+				gs.CastleRights.bks = false
+			}
+		}
+	}
+
+	gs.CastleRightsLog = append(
+		gs.CastleRightsLog, 
+		CastleRights{gs.CastleRights.wks, gs.CastleRights.wqs, gs.CastleRights.bks, gs.CastleRights.bqs},
+	)
 }
 
 func (gs *GameState) UndoMove() {
@@ -136,6 +172,9 @@ func (gs *GameState) UndoMove() {
 	}
 
 	gs.MoveLog = gs.MoveLog[:len(gs.MoveLog)-1]
+
+	gs.CastleRightsLog = gs.CastleRightsLog[:len(gs.CastleRightsLog)-1]
+	gs.CastleRights = gs.CastleRightsLog[len(gs.CastleRightsLog)-1]
 
 	gs.WhiteToMove = !gs.WhiteToMove
 }
