@@ -66,7 +66,10 @@ func handleInput(g *Game) {
 		}
 
 		if len(g.GameState.PlayerClicks) == 2 {
-			m := NewMove(g.GameState.PlayerClicks[0], g.GameState.PlayerClicks[1], g.GameState.Board)
+			m := NewMove(g.GameState.PlayerClicks[0], g.GameState.PlayerClicks[1], g.GameState.Board, false, false)
+
+			fmt.Printf("%v", g.GameState.ValidMoves)
+			fmt.Printf("sdf")
 
 			for _, move := range g.GameState.ValidMoves {
 				if  m.MoveId == move.MoveId {

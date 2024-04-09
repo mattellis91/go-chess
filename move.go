@@ -9,14 +9,11 @@ type Move struct {
 	PieceCaptured string
 	IsPawnPromotion bool
 	IsEnPassant bool
+	IsCastleMove bool
 	MoveId int
 }
 
-func NewMove (startSquare Square, endSquare Square, boardState BoardState) Move {
-	return NewMoveWithEnPassant(startSquare, endSquare, boardState, false) 
-}
-
-func NewMoveWithEnPassant (startSquare Square, endSquare Square, boardState BoardState, isEnPassant bool) Move {
+func NewMove(startSquare Square, endSquare Square, boardState BoardState, isEnPassant bool, isCastleMove bool) Move {
 	pieceMoved := boardState[startSquare.row][startSquare.col]
 
 	isPawnPromotion := (pieceMoved == "wp" && endSquare.row == 0) || (pieceMoved == "bp" && endSquare.row == 7)
@@ -31,7 +28,8 @@ func NewMoveWithEnPassant (startSquare Square, endSquare Square, boardState Boar
 		IsPawnPromotion: isPawnPromotion,
 		IsEnPassant: isEnPassant,
 		MoveId: startSquare.row * 1000 + startSquare.col * 100 + endSquare.row * 10 + endSquare.col,
-	}
+		IsCastleMove: isCastleMove,
+	} 
 }
 
 func (m *Move) GetChessNotation() string {

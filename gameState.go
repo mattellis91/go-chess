@@ -8,24 +8,24 @@ import (
 type BoardState [8][8]string
 
 type GameState struct {
-	Board             BoardState
-	WhiteToMove       bool
-	MoveLog           []Move
-	SquareSelected    Square
-	PlayerClicks      []Square
-	ValidMoves        []Move
-	MoveMade          bool
-	HiglightedSquares []Square
-	BlackKingSquare   Square
-	WhiteKingSquare   Square
+	Board                BoardState
+	WhiteToMove          bool
+	MoveLog              []Move
+	SquareSelected       Square
+	PlayerClicks         []Square
+	ValidMoves           []Move
+	MoveMade             bool
+	HiglightedSquares    []Square
+	BlackKingSquare      Square
+	WhiteKingSquare      Square
 	CurrentPlayerInCheck bool
-	Stalemate		 bool
-	CheckState		 bool
-	Pins		     []AttactedSquare
-	Checks		     []AttactedSquare
-	EnPassantSquare   Square
-	CastleRights	 CastleRights
-	CastleRightsLog  []CastleRights
+	Stalemate            bool
+	CheckState           bool
+	Pins                 []AttactedSquare
+	Checks               []AttactedSquare
+	EnPassantSquare      Square
+	CastleRights         CastleRights
+	CastleRightsLog      []CastleRights
 }
 
 type PieceDelta struct {
@@ -34,8 +34,8 @@ type PieceDelta struct {
 }
 
 type AttactedSquare struct {
-	row int
-	col int
+	row       int
+	col       int
 	direction PieceDelta
 }
 
@@ -52,11 +52,11 @@ func NewGameState() *GameState {
 			{"wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"},
 			{"wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"},
 		},
-		WhiteToMove:    true,
-		MoveMade:       false,
-		SquareSelected: GetNullSquare(),
+		WhiteToMove:     true,
+		MoveMade:        false,
+		SquareSelected:  GetNullSquare(),
 		EnPassantSquare: GetNullSquare(),
-		CastleRights: CastleRights{true, true, true, true},
+		CastleRights:    CastleRights{true, true, true, true},
 		CastleRightsLog: []CastleRights{{true, true, true, true}},
 	}
 }
@@ -64,9 +64,8 @@ func NewGameState() *GameState {
 func GetNullSquare() Square {
 	return Square{-1, -1}
 }
- 
-func (gs *GameState) MakeMove(move Move) {
 
+func (gs *GameState) MakeMove(move Move) {
 
 	fmt.Printf("%v", move)
 
@@ -94,14 +93,14 @@ func (gs *GameState) MakeMove(move Move) {
 	} else {
 		gs.EnPassantSquare = GetNullSquare()
 	}
-	
+
 	gs.UpdateCastleRights(move)
 
 	gs.WhiteToMove = !gs.WhiteToMove
 
 }
 
-func (gs *GameState) UpdateCastleRights (move Move) {
+func (gs *GameState) UpdateCastleRights(move Move) {
 	if move.PieceMoved == "wk" {
 		gs.CastleRights.wks = false
 		gs.CastleRights.wqs = false
@@ -127,7 +126,7 @@ func (gs *GameState) UpdateCastleRights (move Move) {
 	}
 
 	gs.CastleRightsLog = append(
-		gs.CastleRightsLog, 
+		gs.CastleRightsLog,
 		CastleRights{gs.CastleRights.wks, gs.CastleRights.wqs, gs.CastleRights.bks, gs.CastleRights.bqs},
 	)
 }
@@ -145,7 +144,7 @@ func (gs *GameState) UndoMove() {
 
 	gs.Board[move.StartRow][move.StartCol] = move.PieceMoved
 	gs.Board[move.EndRow][move.EndCol] = move.PieceCaptured
-	
+
 	if move.PieceMoved == "wK" {
 		gs.WhiteKingSquare = Square{move.StartRow, move.StartCol}
 	} else if move.PieceMoved == "bK" {
@@ -153,14 +152,14 @@ func (gs *GameState) UndoMove() {
 	}
 
 	if move.IsEnPassant {
-		
+
 		gs.Board[move.StartRow][move.EndCol] = move.PieceCaptured
 		gs.Board[move.EndRow][move.EndCol] = "--"
-		
+
 		if gs.WhiteToMove {
-			gs.Board[move.EndRow - 1][move.EndCol] = "wp"
+			gs.Board[move.EndRow-1][move.EndCol] = "wp"
 		} else {
-			gs.Board[move.EndRow + 1][move.EndCol] = "bp"
+			gs.Board[move.EndRow+1][move.EndCol] = "bp"
 		}
 
 		gs.EnPassantSquare = Square{move.EndRow, move.EndCol}
@@ -180,9 +179,13 @@ func (gs *GameState) UndoMove() {
 }
 
 func (gs *GameState) GetValidMoves() []Move {
+
+
+	fmt.Printf("sd")
+
 	moves := []Move{}
 
-	gs.CurrentPlayerInCheck, gs.Pins, gs.Checks = gs.CheckForPinsAndChecks() 
+	gs.CurrentPlayerInCheck, gs.Pins, gs.Checks = gs.CheckForPinsAndChecks()
 
 	var kingRow, kingCol int
 
@@ -207,8 +210,8 @@ func (gs *GameState) GetValidMoves() []Move {
 				validSquares = append(validSquares, Square{checkRow, checkCol})
 			} else { // if rook, bishop, or queen, you can block the check by moving a piece in between the king and the enemy piece
 				for i := 1; i < 8; i++ {
-					endRow := kingRow + check.direction.row * i
-					endCol := kingCol + check.direction.col * i
+					endRow := kingRow + check.direction.row*i
+					endCol := kingCol + check.direction.col*i
 					validSquares = append(validSquares, Square{endRow, endCol})
 					if endRow == checkRow && endCol == checkCol {
 						break
@@ -216,24 +219,26 @@ func (gs *GameState) GetValidMoves() []Move {
 				}
 			}
 			for i := len(moves) - 1; i >= 0; i-- { // remove moves that don't block check or move king
-				if moves[i].PieceMoved[1] != 'K' { 
+				if moves[i].PieceMoved[1] != 'K' {
 					moveSquareInValidSquares := false
 					for _, validSquare := range validSquares {
-						if moves[i].EndRow == validSquare.row && moves[i].EndCol == validSquare.col { 
+						if moves[i].EndRow == validSquare.row && moves[i].EndCol == validSquare.col {
 							moveSquareInValidSquares = true
 							break
 						}
 					}
 					if !moveSquareInValidSquares { //remove move that does not block check
 						moves = append(moves[:i], moves[i+1:]...)
-					}  
+					}
 				}
 			}
 		} else { // double check, king has to move
-			moves = append(moves, gs.GetKingMoves(kingRow, kingCol)...)	
+			moves = append(moves, gs.GetKingMoves(kingRow, kingCol)...)
 		}
 	} else {
 		moves = gs.GetAllPossibleMoves()
+		fmt.Print("moves");
+		fmt.Printf("%v", moves);
 	}
 
 	// if len(moves) == 0 {
@@ -246,11 +251,11 @@ func (gs *GameState) GetValidMoves() []Move {
 	// 	gs.Checkmate = false
 	// 	gs.Stalemate = false
 	// }
-	
+
 	return moves
 }
 
-func (gs * GameState) CheckForPinsAndChecks() (bool, []AttactedSquare, []AttactedSquare) {
+func (gs *GameState) CheckForPinsAndChecks() (bool, []AttactedSquare, []AttactedSquare) {
 	pins := []AttactedSquare{}
 	checks := []AttactedSquare{}
 	inCheck := false
@@ -262,7 +267,7 @@ func (gs * GameState) CheckForPinsAndChecks() (bool, []AttactedSquare, []Attacte
 		enemyColor = 'b'
 		allyColor = 'w'
 		startRow = gs.WhiteKingSquare.row
-		startCol = gs.WhiteKingSquare.col	
+		startCol = gs.WhiteKingSquare.col
 	} else {
 		enemyColor = 'w'
 		allyColor = 'b'
@@ -272,13 +277,13 @@ func (gs * GameState) CheckForPinsAndChecks() (bool, []AttactedSquare, []Attacte
 
 	// directions 0 to 3 are orthogonal, 4 to 7 are diagonal
 	directions := []PieceDelta{{-1, 0}, {0, -1}, {1, 0}, {0, 1}, {-1, 1}, {1, -1}, {1, 1}}
-	
+
 	for j := 0; j < len(directions); j++ {
 		d := directions[j]
 		possiblePin := AttactedSquare{-1, -1, PieceDelta{}}
 		for i := 1; i < 8; i++ {
-			endRow := startRow + d.row * i
-			endCol := startCol + d.col * i
+			endRow := startRow + d.row*i
+			endCol := startCol + d.col*i
 			if 0 <= endRow && endRow < 8 && 0 <= endCol && endCol < 8 {
 				endPiece := gs.Board[endRow][endCol]
 				if endPiece[0] == allyColor && endPiece[1] != 'K' {
@@ -286,21 +291,21 @@ func (gs * GameState) CheckForPinsAndChecks() (bool, []AttactedSquare, []Attacte
 						possiblePin = AttactedSquare{endRow, endCol, d}
 					} else {
 						break
-					} 
+					}
 				} else if endPiece[0] == enemyColor {
 					pieceType := endPiece[1]
 					// depending on direction that is being checked, only certain pieces can attack the king
-					if  pieceType == 'R' && 0 <= j && j <= 3 || pieceType == 'B' && 4 <= j && j <= 7 ||
-						i == 1 && pieceType == 'p' && ((enemyColor == 'w' && 6 <= j && j <= 7) || (enemyColor == 'b' && 4 <= j && j <= 5)) || 
+					if pieceType == 'R' && 0 <= j && j <= 3 || pieceType == 'B' && 4 <= j && j <= 7 ||
+						i == 1 && pieceType == 'p' && ((enemyColor == 'w' && 6 <= j && j <= 7) || (enemyColor == 'b' && 4 <= j && j <= 5)) ||
 						pieceType == 'Q' || (i == 1 && pieceType == 'K') {
-							if possiblePin.row == -1 {
-								inCheck = true
-								checks = append(checks, AttactedSquare{endRow, endCol, d})
-								break
-							} else { // there is a piece blocking so pin
-								pins = append(pins, possiblePin)
-								break
-							}
+						if possiblePin.row == -1 {
+							inCheck = true
+							checks = append(checks, AttactedSquare{endRow, endCol, d})
+							break
+						} else { // there is a piece blocking so pin
+							pins = append(pins, possiblePin)
+							break
+						}
 					} else { // enemy piece is not attacking the king
 						break
 					}
@@ -332,7 +337,7 @@ func (gs * GameState) CheckForPinsAndChecks() (bool, []AttactedSquare, []Attacte
 func (gs *GameState) IsValidMove(move Move) bool {
 	for _, validMove := range gs.ValidMoves {
 		if move.MoveId == validMove.MoveId {
-			return true		
+			return true
 		}
 	}
 	return false
@@ -397,57 +402,52 @@ func (gs *GameState) GetPawnMoves(r int, c int) []Move {
 		}
 	}
 
-
-	fmt.Print("pawn moves")
-	fmt.Println(gs.EnPassantSquare)
-
-
 	if gs.WhiteToMove {
 		if r-1 >= 0 && gs.Board[r-1][c] == "--" { //move one square
 			if !piecePinned || pinDirection == (PieceDelta{-1, 0}) {
-				moves = append(moves, NewMove(Square{r, c}, Square{r - 1, c}, gs.Board))
+				moves = append(moves, NewMove(Square{r, c}, Square{r - 1, c}, gs.Board, false, false))
 				if r == 6 && gs.Board[r-2][c] == "--" { //move two squares
-					moves = append(moves, NewMove(Square{r, c}, Square{r - 2, c}, gs.Board))
+					moves = append(moves, NewMove(Square{r, c}, Square{r - 2, c}, gs.Board, false, false))
 				}
 			}
 		}
 		if r-1 >= 0 && c-1 >= 0 && gs.Board[r-1][c-1][0] == 'b' { //capture to the left
 			if !piecePinned || pinDirection == (PieceDelta{-1, -1}) {
-				moves = append(moves, NewMove(Square{r, c}, Square{r - 1, c - 1}, gs.Board))
+				moves = append(moves, NewMove(Square{r, c}, Square{r - 1, c - 1}, gs.Board, false, false))
 			}
-		} else if r-1 == gs.EnPassantSquare.row && c-1 == gs.EnPassantSquare.col {  //en passant capture to the left
-			moves = append(moves, NewMoveWithEnPassant(Square{r, c}, Square{r - 1, c - 1}, gs.Board, true))
+		} else if r-1 == gs.EnPassantSquare.row && c-1 == gs.EnPassantSquare.col { //en passant capture to the left
+			moves = append(moves, NewMove(Square{r, c}, Square{r - 1, c - 1}, gs.Board, true, false))
 		}
 		if r-1 >= 0 && c+1 < 8 && gs.Board[r-1][c+1][0] == 'b' { //capture to the right
 			if !piecePinned || pinDirection == (PieceDelta{-1, 1}) {
-				moves = append(moves, NewMove(Square{r, c}, Square{r - 1, c + 1}, gs.Board))
+				moves = append(moves, NewMove(Square{r, c}, Square{r - 1, c + 1}, gs.Board, false, false))
 			}
 		} else if r-1 == gs.EnPassantSquare.row && c+1 == gs.EnPassantSquare.col { //en passant capture to the right
 			fmt.Println("en passant capture to the right")
-			moves = append(moves, NewMoveWithEnPassant(Square{r, c}, Square{r - 1, c + 1}, gs.Board, true))
+			moves = append(moves, NewMove(Square{r, c}, Square{r - 1, c + 1}, gs.Board, true, false))
 		}
 	} else {
 		if r+1 < 8 && gs.Board[r+1][c] == "--" { //move one square
 			if !piecePinned || pinDirection == (PieceDelta{1, 0}) {
-				moves = append(moves, NewMove(Square{r, c}, Square{r + 1, c}, gs.Board))
+				moves = append(moves, NewMove(Square{r, c}, Square{r + 1, c}, gs.Board, false, false))
 				if r == 1 && gs.Board[r+2][c] == "--" { //move two squares
-					moves = append(moves, NewMove(Square{r, c}, Square{r + 2, c}, gs.Board))
+					moves = append(moves, NewMove(Square{r, c}, Square{r + 2, c}, gs.Board, false, false))
 				}
 			}
 		}
 		if r+1 < 8 && c-1 >= 0 && gs.Board[r+1][c-1][0] == 'w' { //capture to the left
 			if !piecePinned || pinDirection == (PieceDelta{1, -1}) {
-				moves = append(moves, NewMove(Square{r, c}, Square{r + 1, c - 1}, gs.Board))
+				moves = append(moves, NewMove(Square{r, c}, Square{r + 1, c - 1}, gs.Board, false, false))
 			}
 		} else if r+1 == gs.EnPassantSquare.row && c-1 == gs.EnPassantSquare.col { //en passant capture to the left
-			moves = append(moves, NewMoveWithEnPassant(Square{r, c}, Square{r + 1, c - 1}, gs.Board, true))
+			moves = append(moves, NewMove(Square{r, c}, Square{r + 1, c - 1}, gs.Board, true, false))
 		}
 		if r+1 < 8 && c+1 < 8 && gs.Board[r+1][c+1][0] == 'w' { //capture to the right
 			if !piecePinned || pinDirection == (PieceDelta{1, 1}) {
-				moves = append(moves, NewMove(Square{r, c}, Square{r + 1, c + 1}, gs.Board))
+				moves = append(moves, NewMove(Square{r, c}, Square{r + 1, c + 1}, gs.Board, false, false))
 			}
 		} else if r+1 == gs.EnPassantSquare.row && c+1 == gs.EnPassantSquare.col { //en passant capture to the right
-			moves = append(moves, NewMoveWithEnPassant(Square{r, c}, Square{r + 1, c + 1}, gs.Board, true))
+			moves = append(moves, NewMove(Square{r, c}, Square{r + 1, c + 1}, gs.Board, true, false))
 		}
 	}
 	return moves
@@ -456,7 +456,7 @@ func (gs *GameState) GetPawnMoves(r int, c int) []Move {
 func (gs *GameState) GetRookMoves(r int, c int) []Move {
 	moves := []Move{}
 	directions := []PieceDelta{{-1, 0}, {1, 0}, {0, -1}, {0, 1}}
-	
+
 	piecePinned := false
 	pinDirection := PieceDelta{}
 	for i := len(gs.Pins) - 1; i >= 0; i-- {
@@ -479,10 +479,10 @@ func (gs *GameState) GetRookMoves(r int, c int) []Move {
 			}
 			if !piecePinned || pinDirection == direction || pinDirection == (PieceDelta{-direction.row, -direction.col}) {
 				if gs.Board[endRow][endCol] == "--" {
-					moves = append(moves, NewMove(Square{r, c}, Square{endRow, endCol}, gs.Board))
+					moves = append(moves, NewMove(Square{r, c}, Square{endRow, endCol}, gs.Board, false, false))
 				} else {
 					if gs.Board[endRow][endCol][0] != gs.Board[r][c][0] { //enemy piece
-						moves = append(moves, NewMove(Square{r, c}, Square{endRow, endCol}, gs.Board))
+						moves = append(moves, NewMove(Square{r, c}, Square{endRow, endCol}, gs.Board, false, false))
 					}
 					break
 				}
@@ -512,7 +512,7 @@ func (gs *GameState) GetKnightMoves(r int, c int) []Move {
 		if endRow >= 0 && endRow < 8 && endCol >= 0 && endCol < 8 {
 			if !piecePinned {
 				if gs.Board[endRow][endCol] == "--" || gs.Board[endRow][endCol][0] != gs.Board[r][c][0] { //empty square or enemy piece
-					moves = append(moves, NewMove(Square{r, c}, Square{endRow, endCol}, gs.Board))
+					moves = append(moves, NewMove(Square{r, c}, Square{endRow, endCol}, gs.Board, false, false))
 				}
 			}
 		}
@@ -548,10 +548,10 @@ func (gs *GameState) GetBishopMoves(r int, c int) []Move {
 			}
 			if !piecePinned || pinDirection == direction || pinDirection == (PieceDelta{-direction.row, -direction.col}) {
 				if gs.Board[endRow][endCol] == "--" {
-					moves = append(moves, NewMove(Square{r, c}, Square{endRow, endCol}, gs.Board))
+					moves = append(moves, NewMove(Square{r, c}, Square{endRow, endCol}, gs.Board, false, false))
 				} else {
 					if gs.Board[endRow][endCol][0] != gs.Board[r][c][0] { //enemy piece
-						moves = append(moves, NewMove(Square{r, c}, Square{endRow, endCol}, gs.Board))
+						moves = append(moves, NewMove(Square{r, c}, Square{endRow, endCol}, gs.Board, false, false))
 					}
 					break
 				}
@@ -572,7 +572,7 @@ func (gs *GameState) GetQueenMoves(r int, c int) []Move {
 }
 
 func (gs *GameState) GetKingMoves(r int, c int) []Move {
-	mmoves := []Move{}
+	moves := []Move{}
 
 	rowMoves := []int{-1, -1, -1, 0, 0, 1, 1, 1}
 	colMoves := []int{-1, 0, 1, -1, 1, -1, 0, 1}
@@ -595,13 +595,13 @@ func (gs *GameState) GetKingMoves(r int, c int) []Move {
 				} else {
 					gs.BlackKingSquare = Square{endRow, endCol}
 				}
-				
+
 				inCheck, _, _ := gs.CheckForPinsAndChecks()
-				
+
 				if !inCheck {
-					mmoves = append(mmoves, NewMove(Square{r, c}, Square{endRow, endCol}, gs.Board))
+					moves = append(moves, NewMove(Square{r, c}, Square{endRow, endCol}, gs.Board, false, false))
 				}
-				
+
 				if allyColor == 'w' {
 					gs.WhiteKingSquare = Square{r, c}
 				} else {
@@ -611,7 +611,43 @@ func (gs *GameState) GetKingMoves(r int, c int) []Move {
 		}
 	}
 
-	return mmoves
+	//moves = append(moves, gs.GetCastleMoves(r, c, allyColor)...)
+
+	return moves
+}
+
+func (gs *GameState) GetCastleMoves(r int, c int, allyColor byte) []Move {
+	moves := []Move{}
+
+	if gs.InCheck() {
+		return moves
+	}
+
+	// if (gs.WhiteToMove && gs.CastleRights.wks) || (!gs.WhiteToMove && gs.CastleRights.bks) {
+	// 	moves = append(moves, gs.GetKingsideCastleMoves(r, c, allyColor)...)
+	// }
+
+	// if (gs.WhiteToMove && gs.CastleRights.wqs) || (!gs.WhiteToMove && gs.CastleRights.bqs) {
+	// 	moves = append(moves, gs.GetQueensideCastleMoves(r, c, allyColor)...)
+	// }
+
+	return moves
+}
+
+func (gs *GameState) GetKingsideCastleMoves(r int, c int, allyColor byte) []Move {
+	moves := []Move{}
+
+	if gs.Board[r][c+1] == "--" && gs.Board[r][c+2] == "--" {
+		if !gs.SquareAttacked(r, c+1) && !gs.SquareAttacked(r, c+2) {
+
+		}
+	}
+
+	return moves
+}
+
+func (gs *GameState) GetQueensideCastleMoves(r int, c int, allyColor byte) []Move {
+	return []Move{}
 }
 
 func (gs *GameState) InCheck() bool {
