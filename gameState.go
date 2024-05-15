@@ -67,8 +67,6 @@ func GetNullSquare() Square {
 
 func (gs *GameState) MakeMove(move Move) {
 
-	fmt.Printf("%v", move)
-
 	gs.Board[move.StartRow][move.StartCol] = "--"
 	gs.Board[move.EndRow][move.EndCol] = move.PieceMoved
 	gs.MoveLog = append(gs.MoveLog, move)
@@ -140,8 +138,6 @@ func (gs *GameState) UndoMove() {
 	}
 	move := gs.MoveLog[len(gs.MoveLog)-1]
 
-	fmt.Printf("%v", move)
-
 	gs.Board[move.StartRow][move.StartCol] = move.PieceMoved
 	gs.Board[move.EndRow][move.EndCol] = move.PieceCaptured
 
@@ -179,9 +175,6 @@ func (gs *GameState) UndoMove() {
 }
 
 func (gs *GameState) GetValidMoves() []Move {
-
-
-	fmt.Printf("sd")
 
 	moves := []Move{}
 
@@ -237,8 +230,6 @@ func (gs *GameState) GetValidMoves() []Move {
 		}
 	} else {
 		moves = gs.GetAllPossibleMoves()
-		fmt.Print("moves");
-		fmt.Printf("%v", moves);
 	}
 
 	// if len(moves) == 0 {
