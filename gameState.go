@@ -20,7 +20,7 @@ type GameState struct {
 	WhiteKingSquare      Square
 	CurrentPlayerInCheck bool
 	Stalemate            bool
-	CheckState           bool
+	Checkmate           bool
 	Pins                 []AttactedSquare
 	Checks               []AttactedSquare
 	EnPassantSquare      Square
@@ -58,6 +58,8 @@ func NewGameState() *GameState {
 		EnPassantSquare: GetNullSquare(),
 		CastleRights:    CastleRights{true, true, true, true},
 		CastleRightsLog: []CastleRights{{true, true, true, true}},
+		WhiteKingSquare: Square{7, 4},
+		BlackKingSquare: Square{0, 4},
 	}
 }
 
@@ -91,21 +93,31 @@ func (gs *GameState) MakeMove(move Move) {
 	} else {
 		gs.EnPassantSquare = GetNullSquare()
 	}
-
+	
 	gs.UpdateCastleRights(move)
+
+	if move.IsCastleMove {
+		if move.EndCol - move.StartCol == 2 { //kingside castle
+			gs.Board[move.EndRow][move.EndCol - 1] = gs.Board[move.EndRow][move.EndCol + 1]
+			gs.Board[move.EndRow][move.EndCol + 1] = "--"
+		} else { //queenside castle
+			gs.Board[move.EndRow][move.EndCol + 1] = gs.Board[move.EndRow][move.EndCol - 2]
+			gs.Board[move.EndRow][move.EndCol - 2] = "--"
+		}
+	}
 
 	gs.WhiteToMove = !gs.WhiteToMove
 
 }
 
 func (gs *GameState) UpdateCastleRights(move Move) {
-	if move.PieceMoved == "wk" {
+	if move.PieceMoved == "wK" {
 		gs.CastleRights.wks = false
 		gs.CastleRights.wqs = false
-	} else if move.PieceMoved == "bk" {
+	} else if move.PieceMoved == "bK" {
 		gs.CastleRights.bks = false
 		gs.CastleRights.bqs = false
-	} else if move.PieceMoved == "wr" {
+	} else if move.PieceMoved == "wR" {
 		if move.StartRow == 7 {
 			if move.StartCol == 0 {
 				gs.CastleRights.wqs = false
@@ -113,7 +125,7 @@ func (gs *GameState) UpdateCastleRights(move Move) {
 				gs.CastleRights.wks = false
 			}
 		}
-	} else if move.PieceMoved == "br" {
+	} else if move.PieceMoved == "bR" {
 		if move.StartRow == 0 {
 			if move.StartCol == 0 {
 				gs.CastleRights.bqs = false
@@ -170,6 +182,16 @@ func (gs *GameState) UndoMove() {
 
 	gs.CastleRightsLog = gs.CastleRightsLog[:len(gs.CastleRightsLog)-1]
 	gs.CastleRights = gs.CastleRightsLog[len(gs.CastleRightsLog)-1]
+
+	if move.IsCastleMove {
+		if move.EndCol - move.StartCol == 2 { //undo kingside castle
+			gs.Board[move.EndRow][move.EndCol + 1] = gs.Board[move.EndRow][move.EndCol - 1]
+			gs.Board[move.EndRow][move.EndCol - 1] = "--"
+		} else { //undo queenside castle
+			gs.Board[move.EndRow][move.EndCol - 2] = gs.Board[move.EndRow][move.EndCol + 1]
+			gs.Board[move.EndRow][move.EndCol + 1] = "--"
+		}
+	}
 
 	gs.WhiteToMove = !gs.WhiteToMove
 }
@@ -232,16 +254,22 @@ func (gs *GameState) GetValidMoves() []Move {
 		moves = gs.GetAllPossibleMoves()
 	}
 
-	// if len(moves) == 0 {
-	// 	if gs.InCheck() {
-	// 		gs.Checkmate = true
-	// 	} else {
-	// 		gs.Stalemate = true
-	// 	}
-	// } else {
-	// 	gs.Checkmate = false
-	// 	gs.Stalemate = false
-	// }
+	if gs.WhiteToMove {
+		moves = append(moves, gs.GetCastleMoves(gs.WhiteKingSquare.row, gs.WhiteKingSquare.col, 'w')...)
+	} else {
+		moves = append(moves, gs.GetCastleMoves(gs.BlackKingSquare.row, gs.BlackKingSquare.col, 'b')...)
+	}
+
+	if len(moves) == 0 {
+		if gs.InCheck() {
+			gs.Checkmate = true
+		} else {
+			gs.Stalemate = true
+		}
+	} else {
+		gs.Checkmate = false
+		gs.Stalemate = false
+	}
 
 	return moves
 }
@@ -602,25 +630,23 @@ func (gs *GameState) GetKingMoves(r int, c int) []Move {
 		}
 	}
 
-	//moves = append(moves, gs.GetCastleMoves(r, c, allyColor)...)
-
 	return moves
 }
 
 func (gs *GameState) GetCastleMoves(r int, c int, allyColor byte) []Move {
 	moves := []Move{}
 
-	if gs.InCheck() {
+	if gs.SquareAttacked(r, c) {
 		return moves
 	}
 
-	// if (gs.WhiteToMove && gs.CastleRights.wks) || (!gs.WhiteToMove && gs.CastleRights.bks) {
-	// 	moves = append(moves, gs.GetKingsideCastleMoves(r, c, allyColor)...)
-	// }
+	if (gs.WhiteToMove && gs.CastleRights.wks) || (!gs.WhiteToMove && gs.CastleRights.bks) {
+		moves = append(moves, gs.GetKingsideCastleMoves(r, c, allyColor)...)
+	}
 
-	// if (gs.WhiteToMove && gs.CastleRights.wqs) || (!gs.WhiteToMove && gs.CastleRights.bqs) {
-	// 	moves = append(moves, gs.GetQueensideCastleMoves(r, c, allyColor)...)
-	// }
+	if (gs.WhiteToMove && gs.CastleRights.wqs) || (!gs.WhiteToMove && gs.CastleRights.bqs) {
+		moves = append(moves, gs.GetQueensideCastleMoves(r, c, allyColor)...)
+	}
 
 	return moves
 }
@@ -628,9 +654,12 @@ func (gs *GameState) GetCastleMoves(r int, c int, allyColor byte) []Move {
 func (gs *GameState) GetKingsideCastleMoves(r int, c int, allyColor byte) []Move {
 	moves := []Move{}
 
+	fmt.Printf("%v, %v, %v", r, c, allyColor)
+	fmt.Printf("%v", gs.CastleRights)
+
 	if gs.Board[r][c+1] == "--" && gs.Board[r][c+2] == "--" {
 		if !gs.SquareAttacked(r, c+1) && !gs.SquareAttacked(r, c+2) {
-
+			moves = append(moves, NewMove(Square{r, c}, Square{r, c+2}, gs.Board, false, true))
 		}
 	}
 
@@ -638,7 +667,15 @@ func (gs *GameState) GetKingsideCastleMoves(r int, c int, allyColor byte) []Move
 }
 
 func (gs *GameState) GetQueensideCastleMoves(r int, c int, allyColor byte) []Move {
-	return []Move{}
+	moves := []Move{}
+
+	if gs.Board[r][c-1] == "--" && gs.Board[r][c-2] == "--" && gs.Board[r][c - 3] == "--" {
+		if !gs.SquareAttacked(r, c-1) && !gs.SquareAttacked(r, c-2) {
+			moves = append(moves, NewMove(Square{r, c}, Square{r, c-2}, gs.Board, false, true))
+		}
+	}
+
+	return moves
 }
 
 func (gs *GameState) InCheck() bool {
